@@ -32,8 +32,8 @@ This project is an interactive AI-powered fashion stylist built with Streamlit. 
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/<your-username>/<repo-name>.git
-    cd <repo-name>
+    git clone https://github.com/mythreyi1905/fashionAssistant.git
+    cd fashionAssistant
     ```
 
 2. **Install dependencies:**
