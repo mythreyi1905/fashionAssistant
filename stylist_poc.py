@@ -4,8 +4,8 @@ from sentence_transformers import SentenceTransformer
 from openai import OpenAI
 import streamlit as st
 
-# --- 1. DEFINE YOUR CURATED WARDROBE ---
-# This is the dataset we designed in the previous step.
+
+
 wardrobe = [
     # Tops (6 items)
     {"name": "Floral Empire Waist Top", "description": "A white empire-waist top with a blue floral print.", "metadata": {"category": "top", "style": "casual", "color": "white/blue", "material": "cotton", "formality": 4, "fit": "relaxed", "properties": ["breathable", "lightweight"]}},
@@ -27,8 +27,7 @@ wardrobe = [
     # Shoes (1 item)
     {"name": "White Nike Air Force 1", "description": "Classic white Nike Air Force 1 sneakers.", "metadata": {"category": "shoes", "style": "streetwear", "color": "white", "material": "leather", "formality": 1, "fit": "standard", "properties": ["durable", "water-resistant"]}},
 ]
-# --- 2. SETUP THE VECTOR DATABASE AND EMBEDDING MODEL ---
-# NEW VERSION of the setup_vector_database function
+
 
 @st.cache_resource
 def load_resources():
@@ -36,7 +35,7 @@ def load_resources():
     client = chromadb.Client()
     collection = client.get_or_create_collection(name="wardrobe_v2_collection")
 
-    # This is the logic from your old setup_vector_database function
+   
     documents_to_embed = []
     metadata_list = []
     ids = []
@@ -45,7 +44,7 @@ def load_resources():
         if isinstance(metadata.get('properties'), list):
             metadata['properties'] = ', '.join(metadata['properties'])
         item['metadata'] = metadata
-        # The embedding string now includes the new properties to make the vector search smarter.
+        
         full_description = (
             f"Item Name: {item['name']}. "
             f"Description: {item['description']}. "
@@ -74,48 +73,12 @@ def load_resources():
     return collection, llm_client
 
 
-def setup_vector_database(wardrobe_data):
-    print("Setting up the vector database...")
-    client = chromadb.Client()
-    # Let's create a new collection for this version
-    collection = client.get_or_create_collection(name="wardrobe_v2_collection")
 
-    documents_to_embed = []
-    metadata_list = []
-    ids = []
-    for i, item in enumerate(wardrobe_data):
-        metadata = item['metadata'].copy()
-        if isinstance(metadata.get('properties'), list):
-            metadata['properties'] = ', '.join(metadata['properties'])
-        item['metadata'] = metadata
-        # The embedding string now includes the new properties to make the vector search smarter.
-        full_description = (
-            f"Item Name: {item['name']}. "
-            f"Description: {item['description']}. "
-            f"Style: {item['metadata']['style']}. "
-            f"Category: {item['metadata']['category']}. "
-            f"Material: {item['metadata']['material']}. "
-            f"Fit: {item['metadata']['fit']}. "
-            f"Properties: {', '.join(item['metadata']['properties'])}."
-        )
-        documents_to_embed.append(full_description)
-        metadata_list.append(item['metadata'])
-        ids.append(str(i + 1))
-    collection.add(
-        documents=documents_to_embed,
-        metadatas=metadata_list,
-        ids=ids
-    )
-    
-    print("Vector database setup complete.")
-    return collection
-# --- 3. THE MAIN AI STYLIST AGENT ---
-# NEW VERSION of the get_outfit_suggestion function
 def get_outfit_suggestion(collection, llm_client, user_query, weather_context):
 
     print(f"\nReceived query: '{user_query}' with weather: '{weather_context}'")
     
-    # Part A: Retrieval - This part is smarter due to the upgraded embedding strings
+    # Part A: Retrieval
     print("Retrieving relevant items from the wardrobe...")
     retrieved_items = collection.query(
         query_texts=[f"{user_query} suitable for {weather_context}"],
@@ -132,7 +95,7 @@ def get_outfit_suggestion(collection, llm_client, user_query, weather_context):
     # Part B: Generation with the new "Reasoning Prompt"
     print("\nAsking the AI Stylist (LLM) for a reasoned outfit suggestion...")
 
-    # This is the upgraded prompt that forces the AI to reason about materials and weather.
+
     system_prompt = (
         "You are an expert fashion stylist with a deep understanding of how fabric materials "
         "and clothing properties perform in various weather conditions. Your task is to create a complete, "
@@ -165,14 +128,12 @@ def get_outfit_suggestion(collection, llm_client, user_query, weather_context):
 
 
 
-
-# --- 4.STREAMLIT USER INTERFACE ---
-
 st.title("AI Fashion Stylist ✨")
 st.write("Welcome! Describe the occasion and the weather, and I'll suggest an outfit from our wardrobe.")
 
 # Load the AI resources using our new cached function
 collection, llm_client = load_resources()
+
 
 # Check if resources loaded successfully before building the rest of the UI
 if collection and llm_client:
@@ -185,18 +146,12 @@ if collection and llm_client:
         "What's the weather like?", 
         "Cool, windy, and overcast, around 55°F (13°C)"
     )
-
-    # Create a button that the user will click to get a suggestion
+    
     if st.button("Get Outfit Suggestion"):
-        # Show a "spinner" message while the AI is working
         with st.spinner("Styling the perfect outfit for you..."):
-            # Call our core logic function with the user's input
             suggestion = get_outfit_suggestion(collection, llm_client, user_query, weather_context)
-            
-            # Display the final result in the app
             st.markdown("---")
             st.subheader("Here's your outfit suggestion:")
             st.markdown(suggestion)
 else:
-    # This message will show if the API key is missing
     st.warning("AI resources could not be loaded. Please check your configuration.")
