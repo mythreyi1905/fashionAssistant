@@ -53,8 +53,8 @@ if not st.session_state["show_registration"]:
     if st.session_state.get("authentication_status"):
         st.write(f'Welcome *{st.session_state["name"]}*')
         authenticator.logout('logout')
-        st.header("Stylist Section (Coming Soon)")
-        st.write("This is where the wardrobe and outfit suggestion UI will be.")
+        st.info("Select a page from the sidebar to get started.")
+        st.sidebar.success("You are logged in.")
     elif st.session_state.get("authentication_status") is False:
         st.error('Username/password is incorrect')
     elif st.session_state.get("authentication_status") is None:
