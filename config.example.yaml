@@ -1,0 +1,13 @@
+credentials:
+  usernames:
+    exampleuser:
+      email: example@example.com
+      name: Example User
+      password: "$2b$12$examplehashedpasswordstring"
+cookie:
+  name: ai_stylist_cookie
+  key: "your_cookie_signing_key_here"
+  expiry_days: 30
+preauthorized:
+  emails:
+    - example@example.com
